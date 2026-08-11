@@ -30,10 +30,11 @@ export class AuthController {
     const maxAge = Number(
       this.configService.get<number>('JWT_COOKIE_MAX_AGE_MS', 604800000),
     );
+    const isProduction = process.env.NODE_ENV === 'production';
     return {
       httpOnly: true,
-      sameSite: 'lax' as const,
-      secure: false,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+      secure: isProduction,
       maxAge,
     };
   }
