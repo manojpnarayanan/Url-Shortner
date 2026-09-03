@@ -7,9 +7,11 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Inject
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import {IAuthService} from './interface/IAuth-service';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,13 +24,13 @@ import { ApiResponse } from '../common/response/api-response';
 @Controller(ROUTES.AUTH.BASE)
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
-    private readonly configService: ConfigService,
+    @Inject("IAuthService") private readonly _authService: IAuthService,
+    private readonly _configService: ConfigService,
   ) {}
 
-  private getCookieOptions() {
+  private _getCookieOptions() {
     const maxAge = Number(
-      this.configService.get<number>('JWT_COOKIE_MAX_AGE_MS', 604800000),
+      this._configService.get<number>('JWT_COOKIE_MAX_AGE_MS', 604800000),
     );
     const isProduction = process.env.NODE_ENV === 'production';
     return {
@@ -44,8 +46,8 @@ export class AuthController {
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.register(dto);
-    res.cookie('jwt', result.token, this.getCookieOptions());
+    const result = await this._authService.register(dto);
+    res.cookie('jwt', result.token, this._getCookieOptions());
     return ApiResponse.ok(
       result.user,
       AUTH_MESSAGES.REGISTER_SUCCESS,
@@ -59,8 +61,8 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.login(dto);
-    res.cookie('jwt', result.token, this.getCookieOptions());
+    const result = await this._authService.login(dto);
+    res.cookie('jwt', result.token, this._getCookieOptions());
     return ApiResponse.ok(
       result.user,
       AUTH_MESSAGES.LOGIN_SUCCESS,
@@ -71,7 +73,7 @@ export class AuthController {
   @Post(ROUTES.AUTH.LOGOUT)
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('jwt', this.getCookieOptions());
+    res.clearCookie('jwt', this._getCookieOptions());
     return ApiResponse.ok(
       null,
       AUTH_MESSAGES.LOGOUT_SUCCESS,
@@ -82,7 +84,7 @@ export class AuthController {
   @Get(ROUTES.AUTH.ME)
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: { id: string; email: string }) {
-    const result = await this.authService.getMe(user.id);
+    const result = await this._authService.getMe(user.id);
     return ApiResponse.ok(
       result,
       AUTH_MESSAGES.PROFILE_FETCHED,
