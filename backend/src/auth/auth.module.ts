@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../user/user.module';
+import { BcryptService } from '../common/security/bcrypt.service';
 
 @Module({
   imports: [
@@ -23,7 +24,12 @@ import { UsersModule } from '../user/user.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [{provide :"IAuthService",useClass:AuthService},
+    {provide:"IHashingService",useClass:BcryptService},
+    AuthService, 
+    JwtStrategy,
+    BcryptService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

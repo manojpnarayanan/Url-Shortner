@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { UrlModule } from './url/url.module';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/filter/http-execution.filter';
 
 @Module({
   imports: [
@@ -20,6 +22,11 @@ import { UrlModule } from './url/url.module';
     UrlModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
